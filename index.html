@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PuzzleKing 🧩</title>
+<style>
+  :root {
+    --bg: #0D0D1A; --bg-card: #161628; --bg-card2: #1E1E35;
+    --gold: #FFD700; --gold-dim: #B8960F;
+    --green: #00FF88; --red: #FF4444; --purple: #AA66FF;
+    --text: #FFFFFF; --text-dim: #8888AA; --border: #2A2A4E;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+  body {
+    font-family: 'Inter','Segoe UI',system-ui,sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; max-width: 430px; margin: 0 auto; overflow-x: hidden;
+  }
+  .header {
+    position: sticky; top: 0; z-index: 100; background: rgba(13,13,26,0.95);
+    backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+    padding: 10px 16px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--gold), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .wallet { display: flex; align-items: center; gap: 6px; background: var(--bg-card); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; font-weight: 700; font-size: 14px; }
+  .tabs { display: flex; background: var(--bg-card); margin: 10px 16px; border-radius: 12px; padding: 4px; gap: 4px; }
+  .tab { flex: 1; padding: 10px 8px; text-align: center; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s; color: var(--text-dim); border: none; background: transparent; }
+  .tab.active { background: linear-gradient(135deg, var(--gold), var(--purple)); color: #000; box-shadow: 0 4px 20px rgba(255,215,0,0.3); }
+  .content { padding: 0 16px 100px; position: relative; z-index: 1; }
+  .screen { display: none; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  .hero { background: linear-gradient(135deg, var(--bg-card), var(--bg-card2)); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 16px; text-align: center; }
+  .hero h1 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+  .hero p { color: var(--text-dim); font-size: 13px; }
+  .hero-score { font-size: 42px; font-weight: 800; color: var(--gold); margin: 10px 0; }
+  .hero-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .btn { width: 100%; padding: 14px; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-gold { background: linear-gradient(135deg, var(--gold), #FFA500); color: #000; box-shadow: 0 4px 20px rgba(255,215,0,0.3); }
+  .btn-gold:active { transform: scale(0.98); }
+  .btn-purple { background: linear-gradient(135deg, var(--purple), #6622AA); color: #fff; box-shadow: 0 4px 20px rgba(170,102,255,0.3); }
+  .btn-outline { background: transparent; border: 1px solid var(--gold-dim); color: var(--gold); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .board { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; background: var(--bg-card); border: 2px solid var(--border); border-radius: 16px; padding: 8px; margin: 16px auto; max-width: 360px; }
+  .tile {
+    aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800; cursor: pointer; transition: all 0.15s;
+    border: 2px solid transparent; position: relative;
+  }
+  .tile:hover { transform: scale(1.05); }
+  .tile.selected { border-color: var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.5); }
+  .tile.matched { animation: matchPop 0.3s ease forwards; }
+  @keyframes matchPop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.8; } 100% { transform: scale(0); opacity: 0; } }
+  .tile-0 { background: linear-gradient(135deg, #FF6B6B, #EE5A5A); }
+  .tile-1 { background: linear-gradient(135deg, #4ECDC4, #3DBDB5); }
+  .tile-2 { background: linear-gradient(135deg, #FFE66D, #FFD93D); }
+  .tile-3 { background: linear-gradient(135deg, #A8E6CF, #6BCB77); }
+  .tile-4 { background: linear-gradient(135deg, #FF8B94, #FF6B81); }
+  .tile-5 { background: linear-gradient(135deg, #98D8C8, #56C5B6); }
+  .tile-icon { font-size: 18px; }
+  .timer { font-size: 28px; font-weight: 800; color: var(--gold); text-align: center; margin: 10px 0; }
+  .timer.warning { color: var(--red); animation: pulse 0.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+  .combo { text-align: center; font-size: 18px; font-weight: 700; color: var(--purple); margin: 5px 0; }
+  .daily-card { background: linear-gradient(135deg, var(--bg-card), rgba(170,102,255,0.1)); border: 1px solid var(--purple); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .daily-title { font-weight: 800; font-size: 16px; color: var(--purple); margin-bottom: 6px; }
+  .daily-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+  .daily-reward { color: var(--gold); font-weight: 700; font-size: 14px; }
+  .leaderboard { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+  .lb-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { font-weight: 800; font-size: 16px; width: 30px; }
+  .lb-rank.gold { color: var(--gold); }
+  .lb-rank.silver { color: #C0C0C0; }
+  .lb-rank.bronze { color: #CD7F32; }
+  .lb-name { flex: 1; margin-left: 8px; }
+  .lb-score { font-weight: 700; color: var(--gold); }
+  .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .stat { text-align: center; background: var(--bg-card2); border-radius: 12px; padding: 10px; }
+  .stat-val { font-size: 18px; font-weight: 800; color: var(--gold); }
+  .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .achievement { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; margin: 4px; font-size: 13px; }
+  .achievement.unlocked { border-color: var(--gold); background: rgba(255,215,0,0.1); }
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: rgba(13,13,26,0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; padding: 8px 16px; gap: 4px; z-index: 100; }
+  .nav-btn { flex: 1; padding: 10px 4px; text-align: center; border: none; background: transparent; color: var(--text-dim); font-size: 10px; font-weight: 600; cursor: pointer; border-radius: 10px; transition: all 0.2s; }
+  .nav-btn.active { color: var(--gold); background: rgba(255,215,0,0.1); }
+  .nav-btn .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+  .toast { position: fixed; top: 70px; left: 50%; transform: translateX(-50%); background: var(--bg-card2); border: 1px solid var(--gold-dim); padding: 12px 24px; border-radius: 14px; font-weight: 600; z-index: 1000; animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+  @keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(-20px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+  @keyframes toastOut { to { opacity:0; transform: translateX(-50%) translateY(-20px); } }
+  .info-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+  .info-box strong { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">🧩 PuzzleKing</div>
+  <div class="wallet">🪙 <span id="headerBalance">0</span></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('play')">🎮 Play</button>
+  <button class="tab" onclick="switchTab('daily')">📅 Daily</button>
+  <button class="tab" onclick="switchTab('rank')">🏆 Rank</button>
+  <button class="tab" onclick="switchTab('profile')">👤 Me</button>
+</div>
+
+<div class="content">
+  <!-- PLAY SCREEN -->
+  <div class="screen active" id="screen-play">
+    <div class="hero">
+      <h1>Match 3 Puzzle</h1>
+      <p>Swap tiles to match 3+ same symbols</p>
+      <div class="hero-label">Score</div>
+      <div class="hero-score" id="gameScore">0</div>
+      <div class="timer" id="gameTimer">60</div>
+      <div class="combo" id="gameCombo"></div>
+    </div>
+    <div class="board" id="gameBoard"></div>
+    <button class="btn btn-gold" onclick="startGame()" id="startBtn">▶ Start Game</button>
+    <div class="info-box" style="margin-top:12px">
+      <strong>How to play:</strong> Tap a tile, then tap an adjacent tile to swap. Match 3+ same symbols horizontally or vertically to clear them and earn points. Combos multiply score!
+    </div>
+  </div>
+
+  <!-- DAILY CHALLENGE -->
+  <div class="screen" id="screen-daily">
+    <div class="daily-card">
+      <div class="daily-title">📅 Daily Challenge</div>
+      <div class="daily-desc" id="dailyDesc">Score 5,000+ points in one game</div>
+      <div class="daily-reward" id="dailyReward">Reward: 500 🪙</div>
+      <button class="btn btn-purple" onclick="startDaily()" style="margin-top:10px">🎯 Start Challenge</button>
+    </div>
+    <div class="daily-card">
+      <div class="daily-title">📊 Today's Progress</div>
+      <div id="dailyProgress">Not started</div>
+    </div>
+    <div class="daily-card">
+      <div class="daily-title">🏅 Weekly Streak</div>
+      <div id="weeklyStreak">0 days</div>
+    </div>
+  </div>
+
+  <!-- RANKING -->
+  <div class="screen" id="screen-rank">
+    <div class="leaderboard">
+      <div style="font-weight:800;font-size:16px;margin-bottom:10px">🏆 Leaderboard</div>
+      <div id="leaderboardList">
+        <div class="lb-row"><span class="lb-rank gold">1</span><span class="lb-name">Player1</span><span class="lb-score">12,450</span></div>
+        <div class="lb-row"><span class="lb-rank silver">2</span><span class="lb-name">Player2</span><span class="lb-score">9,800</span></div>
+        <div class="lb-row"><span class="lb-rank bronze">3</span><span class="lb-name">You</span><span class="lb-score" id="yourScore">0</span></div>
+        <div class="lb-row"><span class="lb-rank">4</span><span class="lb-name">Player4</span><span class="lb-score">6,200</span></div>
+        <div class="lb-row"><span class="lb-rank">5</span><span class="lb-name">Player5</span><span class="lb-score">4,800</span></div>
+      </div>
+    </div>
+    <div class="info-box">
+      <strong>Social feature:</strong> Share your score with friends via Telegram. Beat their score to climb the leaderboard!
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="screen-profile">
+    <div class="hero" style="text-align:center">
+      <div style="font-size:48px">👑</div>
+      <div style="font-weight:800;font-size:20px;margin-top:8px" id="playerName">Player</div>
+      <div style="color:var(--gold);font-size:14px" id="playerRank">Level 1 • Novice</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="statGames">0</div><div class="stat-label">Games</div></div>
+      <div class="stat"><div class="stat-val" id="statBest">0</div><div class="stat-label">Best</div></div>
+      <div class="stat"><div class="stat-val" id="statCoins">0</div><div class="stat-label">Coins</div></div>
+    </div>
+    <div style="margin-top:16px;font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Achievements</div>
+    <div id="achievements" style="margin-top:8px;display:flex;flex-wrap:wrap">
+      <div class="achievement" id="ach-first">🎯 First Game</div>
+      <div class="achievement" id="ach-500">⭐ 500 Points</div>
+      <div class="achievement" id="ach-1k">💥 1K Points</div>
+      <div class="achievement" id="ach-5k">🔥 5K Points</div>
+      <div class="achievement" id="ach-10k">👑 10K Points</div>
+      <div class="achievement" id="ach-daily">📅 Daily Done</div>
+    </div>
+    <div style="margin-top:20px"><button class="btn btn-outline" onclick="showToast('Settings coming soon')">⚙ Settings</button></div>
+  </div>
+</div>
+
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="switchTab('play')"><span class="nav-icon">🎮</span>Play</button>
+  <button class="nav-btn" onclick="switchTab('daily')"><span class="nav-icon">📅</span>Daily</button>
+  <button class="nav-btn" onclick="switchTab('rank')"><span class="nav-icon">🏆</span>Rank</button>
+  <button class="nav-btn" onclick="switchTab('profile')"><span class="nav-icon">👤</span>Me</button>
+</div>
+
+<script>
+// === GAME STATE ===
+const TILES = ['🔥','💎','⭐','🌈','🎯','🌟'];
+let state = {
+  balance: 1000,
+  gamesPlayed: 0,
+  bestScore: 0,
+  achievements: [],
+  dailyScore: 0,
+  dailyDate: '',
+  weeklyStreak: 0,
+  lastPlay: null
+};
+
+// Load state
+try {
+  const s = localStorage.getItem('pk_save');
+  if (s) Object.assign(state, JSON.parse(s));
+} catch(e) {}
+
+function saveState() {
+  try { localStorage.setItem('pk_save', JSON.stringify(state)); } catch(e) {}
+}
+
+// === GAME LOGIC ===
+let board = [];
+let selected = null;
+let score = 0;
+let timer = 60;
+let timerInterval = null;
+let gameActive = false;
+let combo = 0;
+let dailyMode = false;
+
+function createBoard() {
+  board = [];
+  for (let r = 0; r < 8; r++) {
+    board[r] = [];
+    for (let c = 0; c < 8; c++) {
+      board[r][c] = Math.floor(Math.random() * 6);
+    }
+  }
+  // Ensure no initial matches
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (c >= 2 && board[r][c] === board[r][c-1] && board[r][c] === board[r][c-2]) {
+        board[r][c] = (board[r][c] + 1) % 6;
+      }
+      if (r >= 2 && board[r][c] === board[r-1][c] && board[r][c] === board[r-2][c]) {
+        board[r][c] = (board[r][c] + 1) % 6;
+      }
+    }
+  }
+}
+
+function renderBoard() {
+  const el = document.getElementById('gameBoard');
+  el.innerHTML = '';
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const tile = document.createElement('div');
+      tile.className = 'tile tile-' + board[r][c];
+      tile.innerHTML = '<span class="tile-icon">' + TILES[board[r][c]] + '</span>';
+      tile.dataset.row = r;
+      tile.dataset.col = c;
+      tile.onclick = () => onTileClick(r, c);
+      if (selected && selected.r === r && selected.c === c) {
+        tile.classList.add('selected');
+      }
+      el.appendChild(tile);
+    }
+  }
+}
+
+function onTileClick(r, c) {
+  if (!gameActive) return;
+
+  if (!selected) {
+    selected = {r, c};
+    renderBoard();
+    return;
+  }
+
+  const dr = Math.abs(selected.r - r);
+  const dc = Math.abs(selected.c - c);
+
+  // Check if adjacent
+  if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
+    // Swap
+    const temp = board[selected.r][selected.c];
+    board[selected.r][selected.c] = board[r][c];
+    board[r][c] = temp;
+
+    // Check for matches
+    const matches = findMatches();
+    if (matches.length > 0) {
+      combo++;
+      processMatches(matches);
+    } else {
+      // Swap back
+      board[r][c] = board[selected.r][selected.c];
+      board[selected.r][selected.c] = temp;
+      combo = 0;
+    }
+    selected = null;
+    renderBoard();
+    updateScore();
+  } else {
+    selected = {r, c};
+    renderBoard();
+  }
+}
+
+function findMatches() {
+  const matches = [];
+  // Horizontal
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 6; c++) {
+      if (board[r][c] === board[r][c+1] && board[r][c] === board[r][c+2]) {
+        matches.push({r, c});
+        matches.push({r, c: c+1});
+        matches.push({r, c: c+2});
+      }
+    }
+  }
+  // Vertical
+  for (let r = 0; r < 6; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === board[r+1][c] && board[r][c] === board[r+2][c]) {
+        matches.push({r, c});
+        matches.push({r: r+1, c});
+        matches.push({r: r+2, c});
+      }
+    }
+  }
+  // Deduplicate
+  const seen = new Set();
+  return matches.filter(m => {
+    const key = m.r + ',' + m.c;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function processMatches(matches) {
+  // Animate matched tiles
+  matches.forEach(m => {
+    const tile = document.querySelector(`.tile[data-row="${m.r}"][data-col="${m.c}"]`);
+    if (tile) tile.classList.add('matched');
+  });
+
+  // Calculate score
+  const baseScore = matches.length * 10;
+  const comboMultiplier = Math.min(combo, 5);
+  score += baseScore * (1 + comboMultiplier * 0.5);
+
+  // Remove matched tiles and drop
+  setTimeout(() => {
+    matches.forEach(m => {
+      board[m.r][m.c] = -1;
+    });
+    dropTiles();
+    fillEmpty();
+    renderBoard();
+    // Check for new matches (chain reactions)
+    const newMatches = findMatches();
+    if (newMatches.length > 0) {
+      processMatches(newMatches);
+    }
+  }, 300);
+}
+
+function dropTiles() {
+  for (let c = 0; c < 8; c++) {
+    let writeRow = 7;
+    for (let r = 7; r >= 0; r--) {
+      if (board[r][c] !== -1) {
+        board[writeRow][c] = board[r][c];
+        if (writeRow !== r) board[r][c] = -1;
+        writeRow--;
+      }
+    }
+  }
+}
+
+function fillEmpty() {
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === -1) {
+        board[r][c] = Math.floor(Math.random() * 6);
+      }
+    }
+  }
+}
+
+function updateScore() {
+  document.getElementById('gameScore').textContent = Math.floor(score).toLocaleString();
+}
+
+function startGame() {
+  if (gameActive) return;
+  gameActive = true;
+  dailyMode = false;
+  score = 0;
+  combo = 0;
+  timer = 60;
+  selected = null;
+
+  createBoard();
+  renderBoard();
+  updateScore();
+  document.getElementById('startBtn').textContent = '⏳ Playing...';
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('gameCombo').textContent = '';
+
+  // Timer
+  const timerEl = document.getElementById('gameTimer');
+  timerEl.textContent = '60';
+  timerEl.classList.remove('warning');
+
+  timerInterval = setInterval(() => {
+    timer--;
+    timerEl.textContent = timer;
+    if (timer <= 10) timerEl.classList.add('warning');
+    if (timer <= 0) {
+      clearInterval(timerInterval);
+      endGame();
+    }
+  }, 1000);
+}
+
+function startDaily() {
+  if (gameActive) return;
+  gameActive = true;
+  dailyMode = true;
+  score = 0;
+  combo = 0;
+  timer = 90; // longer for daily
+  selected = null;
+
+  createBoard();
+  renderBoard();
+  updateScore();
+  document.getElementById('startBtn').textContent = '⏳ Daily Challenge...';
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('gameCombo').textContent = '📅 Daily';
+
+  const timerEl = document.getElementById('gameTimer');
+  timerEl.textContent = '90';
+  timerEl.classList.remove('warning');
+
+  timerInterval = setInterval(() => {
+    timer--;
+    timerEl.textContent = timer;
+    if (timer <= 10) timerEl.classList.add('warning');
+    if (timer <= 0) {
+      clearInterval(timerInterval);
+      endGame();
+    }
+  }, 1000);
+}
+
+function endGame() {
+  gameActive = false;
+  document.getElementById('startBtn').textContent = '▶ Play Again';
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('gameCombo').textContent = combo > 1 ? '🔥 x' + combo + ' Combo!' : '';
+
+  // Update state
+  state.gamesPlayed++;
+  if (score > state.bestScore) state.bestScore = Math.floor(score);
+  state.balance += Math.floor(score / 10);
+
+  // Daily challenge
+  if (dailyMode) {
+    const today = new Date().toDateString();
+    if (state.dailyDate !== today) {
+      state.dailyScore = Math.floor(score);
+      state.dailyDate = today;
+      state.weeklyStreak = calculateStreak();
+      checkAchievement('ach-daily');
+    }
+  }
+
+  // Achievements
+  if (state.gamesPlayed === 1) checkAchievement('ach-first');
+  if (score >= 500) checkAchievement('ach-500');
+  if (score >= 1000) checkAchievement('ach-1k');
+  if (score >= 5000) checkAchievement('ach-5k');
+  if (score >= 10000) checkAchievement('ach-10k');
+
+  saveState();
+  updateUI();
+
+  // Share option
+  if (window.Telegram && Telegram.WebApp) {
+    Telegram.WebApp.MainButton.text = '📤 Share Score';
+    Telegram.WebApp.MainButton.onClick(() => {
+      const text = '🧩 PuzzleKing! I scored ' + Math.floor(score) + ' points! Can you beat me?';
+      Telegram.WebApp.shareToChat(text);
+    });
+  }
+}
+
+function calculateStreak() {
+  const today = new Date();
+  const last = state.lastPlay ? new Date(state.lastPlay) : null;
+  if (last) {
+    const diff = Math.floor((today - last) / (1000 * 60 * 60 * 24));
+    if (diff === 1) return (state.weeklyStreak || 0) + 1;
+    if (diff === 0) return state.weeklyStreak || 0;
+  }
+  return 1;
+}
+
+function checkAchievement(id) {
+  if (!state.achievements.includes(id)) {
+    state.achievements.push(id);
+    const el = document.getElementById(id);
+    if (el) el.classList.add('unlocked');
+    showToast('Achievement unlocked! 🏆');
+  }
+}
+
+// === UI ===
+function switchTab(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + tab).classList.add('active');
+  event.target.closest('.tab')?.classList.add('active');
+  if (tab === 'rank') updateLeaderboard();
+  if (tab === 'profile') updateProfile();
+  if (tab === 'daily') updateDaily();
+}
+
+function updateUI() {
+  document.getElementById('headerBalance').textContent = state.balance.toLocaleString();
+  document.getElementById('yourScore').textContent = state.bestScore.toLocaleString();
+}
+
+function updateLeaderboard() {
+  document.getElementById('yourScore').textContent = state.bestScore.toLocaleString();
+}
+
+function updateProfile() {
+  document.getElementById('statGames').textContent = state.gamesPlayed;
+  document.getElementById('statBest').textContent = state.bestScore.toLocaleString();
+  document.getElementById('statCoins').textContent = state.balance.toLocaleString();
+  document.getElementById('playerName').textContent = 'Player';
+  const level = state.gamesPlayed < 5 ? 'Novice' : state.gamesPlayed < 20 ? 'Player' : state.gamesPlayed < 50 ? 'Veteran' : 'Legend';
+  document.getElementById('playerRank').textContent = 'Level ' + Math.min(Math.floor(state.gamesPlayed/5)+1, 10) + ' • ' + level;
+
+  // Update achievements
+  ['ach-first','ach-500','ach-1k','ach-5k','ach-10k','ach-daily'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && state.achievements.includes(id.replace('ach-', 'ach-'))) {
+      // check based on actual state
+    }
+  });
+}
+
+function updateDaily() {
+  const today = new Date().toDateString();
+  const dailyChallenges = [
+    { desc: 'Score 5,000+ points in one game', reward: 500, target: 5000 },
+    { desc: 'Score 10,000+ points in one game', reward: 1000, target: 10000 },
+    { desc: 'Get 3x combo or higher', reward: 300, target: 3, type: 'combo' },
+    { desc: 'Play 3 games today', reward: 200, target: 3, type: 'games' },
+  ];
+  const challenge = dailyChallenges[Math.floor(Math.random() * dailyChallenges.length)];
+  document.getElementById('dailyDesc').textContent = challenge.desc;
+  document.getElementById('dailyReward').textContent = 'Reward: ' + challenge.reward + ' 🪙';
+
+  if (state.dailyDate === today) {
+    document.getElementById('dailyProgress').textContent = '✅ Completed today! Score: ' + state.dailyScore.toLocaleString();
+  } else {
+    document.getElementById('dailyProgress').textContent = 'Not completed yet';
+  }
+  document.getElementById('weeklyStreak').textContent = state.weeklyStreak + ' days';
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+function toggleLang() {
+  showToast('English only');
+}
+
+// === TELEGRAM SDK ===
+function initTelegram() {
+  if (window.Telegram && Telegram.WebApp) {
+    const tg = Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    tg.MainButton.text = '▶ Start Game';
+    tg.MainButton.show();
+    tg.MainButton.onClick(() => {
+      tg.HapticFeedback.impactOccurred('medium');
+      if (!gameActive) startGame();
+    });
+    tg.BackButton.show();
+    tg.BackButton.onClick(() => { if (tg.close) tg.close(); });
+    window.tgHaptic = (type='medium') => { try { tg.HapticFeedback.impactOccurred(type); } catch(e) {} };
+    window.tgNotify = (type='notification') => { try { tg.HapticFeedback.notificationOccurred(type); } catch(e) {} };
+    const user = tg.initDataUnsafe?.user;
+    if (user) document.getElementById('playerName').textContent = user.first_name || 'Player';
+  } else {
+    window.tgHaptic = () => {};
+    window.tgNotify = () => {};
+  }
+}
+
+// === INIT ===
+initTelegram();
+updateUI();
+updateDaily();
+createBoard();
+renderBoard();
+</script>
+
+</body>
+</html>
