@@ -42,23 +42,32 @@
   .btn-purple { background: linear-gradient(135deg, var(--purple), #6622AA); color: #fff; box-shadow: 0 4px 20px rgba(170,102,255,0.3); }
   .btn-outline { background: transparent; border: 1px solid var(--gold-dim); color: var(--gold); }
   .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .board { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px; background: var(--bg-card); border: 2px solid var(--border); border-radius: 16px; padding: 8px; margin: 16px auto; max-width: 360px; }
+  .board { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; background: linear-gradient(135deg, #1A1A2E, #0D0D1A); border: 2px solid var(--border); border-radius: 16px; padding: 8px; margin: 16px auto; max-width: 360px; box-shadow: inset 0 0 30px rgba(0,0,0,0.5); }
   .tile {
-    aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    font-size: 22px; font-weight: 800; cursor: pointer; transition: all 0.15s;
+    aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; cursor: pointer; transition: all 0.2s;
     border: 2px solid transparent; position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
-  .tile:hover { transform: scale(1.05); }
-  .tile.selected { border-color: var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.5); }
-  .tile.matched { animation: matchPop 0.3s ease forwards; }
-  @keyframes matchPop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.8; } 100% { transform: scale(0); opacity: 0; } }
-  .tile-0 { background: linear-gradient(135deg, #FF6B6B, #EE5A5A); }
-  .tile-1 { background: linear-gradient(135deg, #4ECDC4, #3DBDB5); }
-  .tile-2 { background: linear-gradient(135deg, #FFE66D, #FFD93D); }
-  .tile-3 { background: linear-gradient(135deg, #A8E6CF, #6BCB77); }
-  .tile-4 { background: linear-gradient(135deg, #FF8B94, #FF6B81); }
-  .tile-5 { background: linear-gradient(135deg, #98D8C8, #56C5B6); }
-  .tile-icon { font-size: 18px; }
+  .tile:hover { transform: scale(1.08); z-index: 2; }
+  .tile.selected { border-color: var(--gold); box-shadow: 0 0 20px rgba(255,215,0,0.6), inset 0 0 10px rgba(255,215,0,0.2); transform: scale(1.1); }
+  .tile.matched { animation: matchPop 0.4s ease forwards; }
+  .tile.swap-out { animation: swapOut 0.2s ease forwards; }
+  .tile.swap-in { animation: swapIn 0.2s ease forwards; }
+  .tile.shake { animation: shake 0.3s ease; }
+  @keyframes matchPop { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.8; } 100% { transform: scale(0); opacity: 0; } }
+  @keyframes swapOut { 0% { transform: scale(1); } 100% { transform: scale(0.5); opacity: 0.5; } }
+  @keyframes swapIn { 0% { transform: scale(0.5); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  @keyframes glow { 0%,100% { box-shadow: 0 0 5px rgba(255,215,0,0.3); } 50% { box-shadow: 0 0 20px rgba(255,215,0,0.6); } }
+  /* Tile types with beautiful gradients */
+  .tile-0 { background: linear-gradient(135deg, #FF6B6B 0%, #EE5A5A 50%, #FF8E8E 100%); box-shadow: 0 2px 8px rgba(255,107,107,0.4); }
+  .tile-1 { background: linear-gradient(135deg, #4ECDC4 0%, #3DBDB5 50%, #7EDDD5 100%); box-shadow: 0 2px 8px rgba(78,205,196,0.4); }
+  .tile-2 { background: linear-gradient(135deg, #FFE66D 0%, #FFD93D 50%, #FFF0A0 100%); box-shadow: 0 2px 8px rgba(255,230,109,0.4); }
+  .tile-3 { background: linear-gradient(135deg, #A8E6CF 0%, #6BCB77 50%, #C5F0D0 100%); box-shadow: 0 2px 8px rgba(168,230,207,0.4); }
+  .tile-4 { background: linear-gradient(135deg, #FF8B94 0%, #FF6B81 50%, #FFB0B8 100%); box-shadow: 0 2px 8px rgba(255,139,148,0.4); }
+  .tile-5 { background: linear-gradient(135deg, #98D8C8 0%, #56C5B6 50%, #B8E8DC 100%); box-shadow: 0 2px 8px rgba(152,216,200,0.4); }
+  .tile-icon { font-size: 20px; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
   .timer { font-size: 28px; font-weight: 800; color: var(--gold); text-align: center; margin: 10px 0; }
   .timer.warning { color: var(--red); animation: pulse 0.5s infinite; }
   @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
@@ -91,6 +100,18 @@
   @keyframes toastOut { to { opacity:0; transform: translateX(-50%) translateY(-20px); } }
   .info-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 12px; font-size: 13px; color: var(--text-dim); line-height: 1.5; }
   .info-box strong { color: var(--gold); }
+  .particle {
+    position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    pointer-events: none; z-index: 50;
+    animation: particleFade 0.6s ease forwards;
+  }
+  @keyframes particleFade { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0) translateY(-30px); } }
+  .score-popup {
+    position: absolute; font-size: 20px; font-weight: 800; color: var(--gold);
+    pointer-events: none; z-index: 50; animation: scorePopup 0.8s ease forwards;
+    text-shadow: 0 0 10px rgba(255,215,0,0.5);
+  }
+  @keyframes scorePopup { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-40px) scale(1.5); } }
 </style>
 </head>
 <body>
@@ -121,7 +142,7 @@
     <div class="board" id="gameBoard"></div>
     <button class="btn btn-gold" onclick="startGame()" id="startBtn">▶ Start Game</button>
     <div class="info-box" style="margin-top:12px">
-      <strong>How to play:</strong> Tap a tile, then tap an adjacent tile to swap. Match 3+ same symbols horizontally or vertically to clear them and earn points. Combos multiply score!
+      <strong>How to play:</strong> Tap a tile, then tap an adjacent tile to swap. Match 3+ same symbols to clear them and earn points. Combos multiply score!
     </div>
   </div>
 
@@ -195,6 +216,14 @@
 <script>
 // === GAME STATE ===
 const TILES = ['🔥','💎','⭐','🌈','🎯','🌟'];
+const TILE_COLORS = [
+  ['#FF6B6B','#EE5A5A','#FF8E8E'],
+  ['#4ECDC4','#3DBDB5','#7EDDD5'],
+  ['#FFE66D','#FFD93D','#FFF0A0'],
+  ['#A8E6CF','#6BCB77','#C5F0D0'],
+  ['#FF8B94','#FF6B81','#FFB0B8'],
+  ['#98D8C8','#56C5B6','#B8E8DC']
+];
 let state = {
   balance: 1000,
   gamesPlayed: 0,
@@ -206,7 +235,6 @@ let state = {
   lastPlay: null
 };
 
-// Load state
 try {
   const s = localStorage.getItem('pk_save');
   if (s) Object.assign(state, JSON.parse(s));
@@ -225,6 +253,7 @@ let timerInterval = null;
 let gameActive = false;
 let combo = 0;
 let dailyMode = false;
+let boardEl = null;
 
 function createBoard() {
   board = [];
@@ -248,8 +277,8 @@ function createBoard() {
 }
 
 function renderBoard() {
-  const el = document.getElementById('gameBoard');
-  el.innerHTML = '';
+  boardEl = document.getElementById('gameBoard');
+  boardEl.innerHTML = '';
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       const tile = document.createElement('div');
@@ -257,16 +286,19 @@ function renderBoard() {
       tile.innerHTML = '<span class="tile-icon">' + TILES[board[r][c]] + '</span>';
       tile.dataset.row = r;
       tile.dataset.col = c;
-      tile.onclick = () => onTileClick(r, c);
+      tile.onclick = (e) => {
+        const rect = tile.getBoundingClientRect();
+        onTileClick(r, c, rect);
+      };
       if (selected && selected.r === r && selected.c === c) {
         tile.classList.add('selected');
       }
-      el.appendChild(tile);
+      boardEl.appendChild(tile);
     }
   }
 }
 
-function onTileClick(r, c) {
+function onTileClick(r, c, rect) {
   if (!gameActive) return;
 
   if (!selected) {
@@ -278,27 +310,37 @@ function onTileClick(r, c) {
   const dr = Math.abs(selected.r - r);
   const dc = Math.abs(selected.c - c);
 
-  // Check if adjacent
   if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
-    // Swap
-    const temp = board[selected.r][selected.c];
-    board[selected.r][selected.c] = board[r][c];
-    board[r][c] = temp;
+    // Swap animation
+    const tile1 = document.querySelector(`.tile[data-row="${selected.r}"][data-col="${selected.c}"]`);
+    const tile2 = document.querySelector(`.tile[data-row="${r}"][data-col="${c}"]`);
+    if (tile1) tile1.classList.add('swap-out');
+    if (tile2) tile2.classList.add('swap-out');
 
-    // Check for matches
-    const matches = findMatches();
-    if (matches.length > 0) {
-      combo++;
-      processMatches(matches);
-    } else {
-      // Swap back
-      board[r][c] = board[selected.r][selected.c];
-      board[selected.r][selected.c] = temp;
-      combo = 0;
-    }
-    selected = null;
-    renderBoard();
-    updateScore();
+    setTimeout(() => {
+      const temp = board[selected.r][selected.c];
+      board[selected.r][selected.c] = board[r][c];
+      board[r][c] = temp;
+      selected = null;
+      renderBoard();
+
+      const matches = findMatches();
+      if (matches.length > 0) {
+        combo++;
+        processMatches(matches);
+      } else {
+        // Swap back
+        board[r][c] = board[selected?.r || r][selected?.c || c];
+        board[selected?.r || r][selected?.c || c] = temp;
+        combo = 0;
+        renderBoard();
+        // Shake animation
+        const tiles = document.querySelectorAll('.tile');
+        tiles.forEach(t => t.classList.add('shake'));
+        setTimeout(() => tiles.forEach(t => t.classList.remove('shake')), 300);
+      }
+      updateScore();
+    }, 200);
   } else {
     selected = {r, c};
     renderBoard();
@@ -307,7 +349,6 @@ function onTileClick(r, c) {
 
 function findMatches() {
   const matches = [];
-  // Horizontal
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 6; c++) {
       if (board[r][c] === board[r][c+1] && board[r][c] === board[r][c+2]) {
@@ -317,7 +358,6 @@ function findMatches() {
       }
     }
   }
-  // Vertical
   for (let r = 0; r < 6; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c] === board[r+1][c] && board[r][c] === board[r+2][c]) {
@@ -327,7 +367,6 @@ function findMatches() {
       }
     }
   }
-  // Deduplicate
   const seen = new Set();
   return matches.filter(m => {
     const key = m.r + ',' + m.c;
@@ -338,16 +377,52 @@ function findMatches() {
 }
 
 function processMatches(matches) {
-  // Animate matched tiles
+  // Particles
   matches.forEach(m => {
     const tile = document.querySelector(`.tile[data-row="${m.r}"][data-col="${m.c}"]`);
-    if (tile) tile.classList.add('matched');
+    if (tile) {
+      const rect = tile.getBoundingClientRect();
+      const boardRect = boardEl.getBoundingClientRect();
+      for (let i = 0; i < 5; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = (rect.left - boardRect.left + rect.width/2) + 'px';
+        particle.style.top = (rect.top - boardRect.top + rect.height/2) + 'px';
+        particle.style.background = TILE_COLORS[board[m.r][c]][0];
+        particle.style.width = (4 + Math.random()*4) + 'px';
+        particle.style.height = particle.style.width;
+        boardEl.appendChild(particle);
+        setTimeout(() => particle.remove(), 600);
+      }
+      tile.classList.add('matched');
+    }
   });
 
-  // Calculate score
+  // Score popup
   const baseScore = matches.length * 10;
   const comboMultiplier = Math.min(combo, 5);
-  score += baseScore * (1 + comboMultiplier * 0.5);
+  const totalScore = baseScore * (1 + comboMultiplier * 0.5);
+  score += totalScore;
+
+  // Show score popup
+  if (matches.length > 0) {
+    const firstMatch = matches[0];
+    const tile = document.querySelector(`.tile[data-row="${firstMatch.r}"][data-col="${firstMatch.c}"]`);
+    if (tile) {
+      const rect = tile.getBoundingClientRect();
+      const boardRect = boardEl.getBoundingClientRect();
+      const popup = document.createElement('div');
+      popup.className = 'score-popup';
+      popup.textContent = '+' + Math.floor(totalScore);
+      popup.style.left = (rect.left - boardRect.left + rect.width/2) + 'px';
+      popup.style.top = (rect.top - boardRect.top) + 'px';
+      boardEl.appendChild(popup);
+      setTimeout(() => popup.remove(), 800);
+    }
+  }
+
+  // Update combo display
+  document.getElementById('gameCombo').textContent = combo > 1 ? '🔥 x' + combo + ' Combo!' : '';
 
   // Remove matched tiles and drop
   setTimeout(() => {
@@ -362,7 +437,7 @@ function processMatches(matches) {
     if (newMatches.length > 0) {
       processMatches(newMatches);
     }
-  }, 300);
+  }, 400);
 }
 
 function dropTiles() {
@@ -408,7 +483,6 @@ function startGame() {
   document.getElementById('startBtn').disabled = true;
   document.getElementById('gameCombo').textContent = '';
 
-  // Timer
   const timerEl = document.getElementById('gameTimer');
   timerEl.textContent = '60';
   timerEl.classList.remove('warning');
@@ -430,7 +504,7 @@ function startDaily() {
   dailyMode = true;
   score = 0;
   combo = 0;
-  timer = 90; // longer for daily
+  timer = 90;
   selected = null;
 
   createBoard();
@@ -461,12 +535,10 @@ function endGame() {
   document.getElementById('startBtn').disabled = false;
   document.getElementById('gameCombo').textContent = combo > 1 ? '🔥 x' + combo + ' Combo!' : '';
 
-  // Update state
   state.gamesPlayed++;
   if (score > state.bestScore) state.bestScore = Math.floor(score);
   state.balance += Math.floor(score / 10);
 
-  // Daily challenge
   if (dailyMode) {
     const today = new Date().toDateString();
     if (state.dailyDate !== today) {
@@ -477,7 +549,6 @@ function endGame() {
     }
   }
 
-  // Achievements
   if (state.gamesPlayed === 1) checkAchievement('ach-first');
   if (score >= 500) checkAchievement('ach-500');
   if (score >= 1000) checkAchievement('ach-1k');
@@ -487,7 +558,6 @@ function endGame() {
   saveState();
   updateUI();
 
-  // Share option
   if (window.Telegram && Telegram.WebApp) {
     Telegram.WebApp.MainButton.text = '📤 Share Score';
     Telegram.WebApp.MainButton.onClick(() => {
@@ -542,14 +612,15 @@ function updateProfile() {
   document.getElementById('statBest').textContent = state.bestScore.toLocaleString();
   document.getElementById('statCoins').textContent = state.balance.toLocaleString();
   document.getElementById('playerName').textContent = 'Player';
-  const level = state.gamesPlayed < 5 ? 'Novice' : state.gamesPlayed < 20 ? 'Player' : state.gamesPlayed < 50 ? 'Veteran' : 'Legend';
-  document.getElementById('playerRank').textContent = 'Level ' + Math.min(Math.floor(state.gamesPlayed/5)+1, 10) + ' • ' + level;
+  const level = Math.min(Math.floor(state.gamesPlayed/5)+1, 10);
+  const rank = level < 3 ? 'Novice' : level < 7 ? 'Player' : level < 10 ? 'Veteran' : 'Legend';
+  document.getElementById('playerRank').textContent = 'Level ' + level + ' • ' + rank;
 
-  // Update achievements
+  // Update achievements visibility
   ['ach-first','ach-500','ach-1k','ach-5k','ach-10k','ach-daily'].forEach(id => {
     const el = document.getElementById(id);
-    if (el && state.achievements.includes(id.replace('ach-', 'ach-'))) {
-      // check based on actual state
+    if (el && state.achievements.includes(id.replace('ach-', ''))) {
+      el.classList.add('unlocked');
     }
   });
 }
@@ -580,10 +651,6 @@ function showToast(msg) {
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2500);
-}
-
-function toggleLang() {
-  showToast('English only');
 }
 
 // === TELEGRAM SDK ===
